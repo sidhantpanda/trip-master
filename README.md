@@ -33,6 +33,16 @@ The API now supports JWT auth with access/refresh tokens stored in httpOnly cook
 
 The web client includes register/login forms and protects the dashboard route, redirecting unauthenticated users to `/login`.
 
+## Trips (Phase 3)
+Trip CRUD and collaboration:
+- `POST /trips`, `GET /trips`, `GET /trips/:id`, `PUT /trips/:id`, `DELETE /trips/:id`
+- `POST /trips/:id/collaborators`, `PUT /trips/:id/collaborators/:userId`, `DELETE /trips/:id/collaborators/:userId`
+- Role rules: owner/editor can edit; viewer is read-only; non-members get 403.
+
+Web client additions:
+- Trips list and create form.
+- Trip detail page with overview editing, collaborator invites/removal, and manual itinerary item additions.
+
 ## Production-ish compose
 Builds production images for the API and web client along with MongoDB:
 ```

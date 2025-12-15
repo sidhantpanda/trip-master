@@ -144,6 +144,18 @@ a:hover {
   margin: 4px 0;
 }
 
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(125, 211, 252, 0.15);
+  color: #7dd3fc;
+  font-weight: 700;
+  font-size: 12px;
+}
+
 .user-meta {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -157,6 +169,113 @@ a:hover {
   letter-spacing: 0.05em;
   color: #94a3b8;
   margin: 0 0 4px 0;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.trip-list {
+  display: grid;
+  gap: 12px;
+}
+
+.trip-card {
+  display: block;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(15, 23, 42, 0.6);
+  transition: transform 0.1s ease, border 0.1s ease;
+}
+
+.trip-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(125, 211, 252, 0.4);
+}
+
+.trip-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.button-stack {
+  display: flex;
+  gap: 8px;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.list-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  border-radius: 10px;
+  background: rgba(148, 163, 184, 0.08);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+}
+
+.list-row__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.day-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.subcard {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.input-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.button-row {
+  display: flex;
+  gap: 8px;
+}
+
+select {
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  background: rgba(255, 255, 255, 0.02);
+  color: #e2e8f0;
+}
+
+.danger {
+  border-color: rgba(248, 113, 113, 0.6);
+  color: #fecdd3;
 }
 
 @media (max-width: 720px) {
