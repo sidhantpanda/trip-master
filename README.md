@@ -18,6 +18,21 @@ Alternatively, use Docker Compose for a full stack dev environment:
 docker compose -f infra/docker-compose.dev.yml up --build
 ```
 
+## Environment
+- API (`apps/api`): set `PORT`, `MONGODB_URI`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `COOKIE_SECURE=false` (true when served over HTTPS), `APP_BASE_URL=http://localhost:5173`.
+- Web (`apps/web`): set `VITE_API_BASE_URL=http://localhost:4000`.
+- Dev compose already wires example values for the secrets above.
+
+## Auth (Phase 2)
+The API now supports JWT auth with access/refresh tokens stored in httpOnly cookies:
+- `POST /auth/register` – create account and receive cookies
+- `POST /auth/login` – sign in and receive cookies
+- `POST /auth/refresh` – refresh cookies via refresh token
+- `POST /auth/logout` – clear cookies
+- `GET /auth/me` – return the current user (requires access token)
+
+The web client includes register/login forms and protects the dashboard route, redirecting unauthenticated users to `/login`.
+
 ## Production-ish compose
 Builds production images for the API and web client along with MongoDB:
 ```

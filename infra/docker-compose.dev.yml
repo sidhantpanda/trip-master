@@ -24,6 +24,10 @@ services:
     environment:
       - PORT=4000
       - MONGODB_URI=mongodb://mongodb:27017/travelplanner
+      - JWT_ACCESS_SECRET=dev-access-secret
+      - JWT_REFRESH_SECRET=dev-refresh-secret
+      - COOKIE_SECURE=false
+      - APP_BASE_URL=http://localhost:5173
     depends_on:
       - mongodb
     networks:
