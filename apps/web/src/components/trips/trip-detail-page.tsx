@@ -17,6 +17,8 @@ import { Badge } from "../ui/badge";
 import { Textarea } from "../ui/textarea";
 import { FullPageState } from "../full-page-state";
 import { sortAndReindex } from "../../lib/trip-utils";
+import { DatePickerField } from "../date-picker-field";
+import { format } from "date-fns";
 
 export function TripDetailPage({
   userId,
@@ -33,11 +35,11 @@ export function TripDetailPage({
 
   const [title, setTitle] = useState("");
   const [destination, setDestination] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [timezone, setTimezone] = useState("");
   const [itemTitle, setItemTitle] = useState("");
-  const [itemDate, setItemDate] = useState("");
+  const [itemDate, setItemDate] = useState<Date | undefined>(undefined);
   const [itemNotes, setItemNotes] = useState("");
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [inviteEmail, setInviteEmail] = useState("");
@@ -63,8 +65,8 @@ export function TripDetailPage({
     if (tripQuery.data) {
       setTitle(tripQuery.data.title);
       setDestination(tripQuery.data.destination);
-      setStartDate(tripQuery.data.startDate ? tripQuery.data.startDate.slice(0, 10) : "");
-      setEndDate(tripQuery.data.endDate ? tripQuery.data.endDate.slice(0, 10) : "");
+      setStartDate(tripQuery.data.startDate ? new Date(tripQuery.data.startDate) : undefined);
+      setEndDate(tripQuery.data.endDate ? new Date(tripQuery.data.endDate) : undefined);
       setTimezone(tripQuery.data.timezone || "");
     }
   }, [tripQuery.data]);
@@ -105,9 +107,14 @@ export function TripDetailPage({
     const trip = tripQuery.data;
     if (!trip || !itemTitle) return;
 
-    const targetDate = itemDate || trip.startDate || new Date().toISOString().slice(0, 10);
+    const targetDateStr = itemDate
+      ? format(itemDate, "yyyy-MM-dd")
+      : trip.startDate
+        ? trip.startDate.slice(0, 10)
+        : format(new Date(), "yyyy-MM-dd");
+    const targetDate = targetDateStr;
     const days: Trip["days"] = [...trip.days];
-    const dayKey = targetDate.slice(0, 10);
+    const dayKey = targetDate;
     let targetDay = days.find((d) => d.date.slice(0, 10) === dayKey);
     if (!targetDay) {
       targetDay = { dayIndex: days.length, date: targetDate, items: [], routes: undefined };
@@ -139,7 +146,7 @@ export function TripDetailPage({
   };
 
   const beginEditItem = (dayDate: string, item: Trip["days"][number]["items"][number]) => {
-    setItemDate(dayDate.slice(0, 10));
+    setItemDate(new Date(dayDate));
     setItemTitle(item.title);
     setItemNotes(item.notes || "");
     setEditingItemId(item.id || null);
@@ -232,8 +239,8 @@ export function TripDetailPage({
                 updateTripMutation.mutate({
                   title,
                   destination,
-                  startDate: startDate || undefined,
-                  endDate: endDate || undefined,
+                  startDate: startDate ? format(startDate, "yyyy-MM-dd") : undefined,
+                  endDate: endDate ? format(endDate, "yyyy-MM-dd") : undefined,
                   timezone: timezone || undefined
                 });
               }}
@@ -253,26 +260,20 @@ export function TripDetailPage({
                 />
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
-                <div className="space-y-1.5">
-                  <Label htmlFor="startDate">Start date</Label>
-                  <Input
-                    id="startDate"
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    disabled={!canEdit}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="endDate">End date</Label>
-                  <Input
-                    id="endDate"
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    disabled={!canEdit}
-                  />
-                </div>
+                <DatePickerField
+                  id="startDate"
+                  label="Start date"
+                  value={startDate}
+                  onChange={setStartDate}
+                  placeholder="Select start"
+                />
+                <DatePickerField
+                  id="endDate"
+                  label="End date"
+                  value={endDate}
+                  onChange={setEndDate}
+                  placeholder="Select end"
+                />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="timezone">Timezone</Label>
@@ -439,16 +440,13 @@ export function TripDetailPage({
                 addItem();
               }}
             >
-              <div className="space-y-1.5">
-                <Label htmlFor="item-date">Date</Label>
-                <Input
-                  id="item-date"
-                  type="date"
-                  value={itemDate}
-                  onChange={(e) => setItemDate(e.target.value)}
-                  placeholder="2024-08-01"
-                />
-              </div>
+              <DatePickerField
+                id="item-date"
+                label="Date"
+                value={itemDate}
+                onChange={setItemDate}
+                placeholder="Pick a date"
+              />
               <div className="space-y-1.5">
                 <Label htmlFor="item-title">Title</Label>
                 <Input

@@ -7,6 +7,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Badge } from "../ui/badge";
+import { DatePickerField } from "../date-picker-field";
+import { useState } from "react";
+import { format } from "date-fns";
 
 export function TripsPage({
   user,
@@ -19,6 +22,8 @@ export function TripsPage({
 }) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
 
   const tripsQuery = useQuery({
     queryKey: ["trips"],
@@ -65,11 +70,13 @@ export function TripsPage({
               onSubmit={(e) => {
                 e.preventDefault();
                 const formData = new FormData(e.currentTarget);
+                const title = formData.get("title") as string;
+                const destination = formData.get("destination") as string;
                 createTripMutation.mutate({
-                  title: formData.get("title") as string,
-                  destination: formData.get("destination") as string,
-                  startDate: (formData.get("startDate") as string) || undefined,
-                  endDate: (formData.get("endDate") as string) || undefined
+                  title,
+                  destination,
+                  startDate: startDate ? format(startDate, "yyyy-MM-dd") : undefined,
+                  endDate: endDate ? format(endDate, "yyyy-MM-dd") : undefined
                 });
               }}
             >
@@ -82,14 +89,20 @@ export function TripsPage({
                 <Input id="destination" name="destination" placeholder="Barcelona, Spain" required />
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
-                <div className="space-y-1.5">
-                  <Label htmlFor="startDate">Start date</Label>
-                  <Input id="startDate" name="startDate" type="date" />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="endDate">End date</Label>
-                  <Input id="endDate" name="endDate" type="date" />
-                </div>
+                <DatePickerField
+                  id="startDate"
+                  label="Start date"
+                  value={startDate}
+                  onChange={setStartDate}
+                  placeholder="Select start"
+                />
+                <DatePickerField
+                  id="endDate"
+                  label="End date"
+                  value={endDate}
+                  onChange={setEndDate}
+                  placeholder="Select end"
+                />
               </div>
               {createTripMutation.error && (
                 <p className="text-sm text-destructive">
