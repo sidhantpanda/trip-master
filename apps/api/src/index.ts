@@ -1,3 +1,4 @@
+require('dotenv').config();
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
@@ -5,6 +6,7 @@ import mongoose from "mongoose";
 import { healthSchema, HealthResponse } from "@trip-master/shared";
 import { env } from "./config/env";
 import authRouter from "./routes/auth";
+
 
 const app = express();
 

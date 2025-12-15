@@ -18,8 +18,6 @@ const userSchema = new Schema<UserDocument>(
   { timestamps: true }
 );
 
-userSchema.index({ email: 1 }, { unique: true });
-
 export const UserModel = mongoose.model<UserDocument>("User", userSchema);
 
 export function toUserDTO(user: UserDocument): UserDTO {

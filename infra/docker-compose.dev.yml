@@ -10,46 +10,46 @@ services:
     networks:
       - appnet
 
-  api:
-    build:
-      context: ..
-      dockerfile: apps/api/Dockerfile
-      target: dev
-    working_dir: /app/apps/api
-    command: npm run dev
-    ports:
-      - "4000:4000"
-    volumes:
-      - ../:/app
-    environment:
-      - PORT=4000
-      - MONGODB_URI=mongodb://mongodb:27017/travelplanner
-      - JWT_ACCESS_SECRET=dev-access-secret
-      - JWT_REFRESH_SECRET=dev-refresh-secret
-      - COOKIE_SECURE=false
-      - APP_BASE_URL=http://localhost:5173
-    depends_on:
-      - mongodb
-    networks:
-      - appnet
+  # api:
+  #   build:
+  #     context: ..
+  #     dockerfile: apps/api/Dockerfile
+  #     target: dev
+  #   working_dir: /app/apps/api
+  #   command: npm run dev
+  #   ports:
+  #     - "4000:4000"
+  #   volumes:
+  #     - ../:/app
+  #   environment:
+  #     - PORT=4000
+  #     - MONGODB_URI=mongodb://mongodb:27017/travelplanner
+  #     - JWT_ACCESS_SECRET=dev-access-secret
+  #     - JWT_REFRESH_SECRET=dev-refresh-secret
+  #     - COOKIE_SECURE=false
+  #     - APP_BASE_URL=http://localhost:5173
+  #   depends_on:
+  #     - mongodb
+  #   networks:
+  #     - appnet
 
-  web:
-    build:
-      context: ..
-      dockerfile: apps/web/Dockerfile
-      target: dev
-    working_dir: /app/apps/web
-    command: npm run dev -- --host 0.0.0.0 --port 5173
-    ports:
-      - "5173:5173"
-    volumes:
-      - ../:/app
-    environment:
-      - VITE_API_BASE_URL=http://localhost:4000
-    depends_on:
-      - api
-    networks:
-      - appnet
+  # web:
+  #   build:
+  #     context: ..
+  #     dockerfile: apps/web/Dockerfile
+  #     target: dev
+  #   working_dir: /app/apps/web
+  #   command: npm run dev -- --host 0.0.0.0 --port 5173
+  #   ports:
+  #     - "5173:5173"
+  #   volumes:
+  #     - ../:/app
+  #   environment:
+  #     - VITE_API_BASE_URL=http://localhost:4000
+  #   depends_on:
+  #     - api
+  #   networks:
+  #     - appnet
 
 volumes:
   mongodb_data:
