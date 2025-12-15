@@ -1,0 +1,44 @@
+version: "3.9"
+services:
+  mongodb:
+    image: mongo:7
+    restart: unless-stopped
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - appnet
+
+  api:
+    build:
+      context: ..
+      dockerfile: apps/api/Dockerfile
+      target: prod
+    environment:
+      - PORT=4000
+      - MONGODB_URI=mongodb://mongodb:27017/travelplanner
+    depends_on:
+      - mongodb
+    ports:
+      - "4000:4000"
+    networks:
+      - appnet
+
+  web:
+    build:
+      context: ..
+      dockerfile: apps/web/Dockerfile
+      target: prod
+    environment:
+      - VITE_API_BASE_URL=http://api:4000
+    ports:
+      - "5173:80"
+    depends_on:
+      - api
+    networks:
+      - appnet
+
+volumes:
+  mongodb_data:
+
+networks:
+  appnet:
