@@ -1,17 +1,5 @@
 import { TripDay } from "@trip-master/shared";
-
-export interface GenerateOptions {
-  prompt: string;
-  model?: string;
-  dayCount: number;
-  startDate?: string;
-  destination?: string;
-  apiKey?: string;
-}
-
-export interface LLMProviderAdapter {
-  generateItinerary(options: GenerateOptions): Promise<TripDay[]>;
-}
+import { GenerateOptions, LLMProviderAdapter } from "./types";
 
 export class MockLLMProvider implements LLMProviderAdapter {
   async generateItinerary(options: GenerateOptions): Promise<TripDay[]> {

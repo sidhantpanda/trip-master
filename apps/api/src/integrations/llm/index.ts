@@ -1,15 +1,17 @@
-import { LLMProviderAdapter, MockLLMProvider } from "./mockProvider";
+import { LLMProviderAdapter } from "./types";
+import { MockLLMProvider } from "./mockProvider";
+import { OpenAIProvider } from "./openaiProvider";
 
-export function getLLMProvider(provider: string): LLMProviderAdapter {
+export function getLLMProvider(provider: string, apiKey?: string): LLMProviderAdapter {
   switch (provider) {
+    case "mock":
+      return new MockLLMProvider();
     case "openai":
+      return new OpenAIProvider(apiKey || "");
     case "anthropic":
     case "gemini":
-    case "mock":
+      throw new Error(`LLM provider "${provider}" is not implemented yet`);
     default:
-      if (provider !== "mock") {
-        console.warn(`Provider "${provider}" not implemented, falling back to mock generator.`);
-      }
-      return new MockLLMProvider();
+      throw new Error(`Unknown LLM provider "${provider}"`);
   }
 }

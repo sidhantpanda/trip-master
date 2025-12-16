@@ -308,6 +308,9 @@ router.post("/:id/generate-itinerary", async (req, res) => {
       console.warn("Failed to decrypt API key for provider", provider);
     }
   }
+  if (provider !== "mock" && !apiKey) {
+    return res.status(400).json({ error: `API key required for provider ${provider}` });
+  }
 
   const startDateIso = trip.startDate?.toISOString();
   const dayCount =
@@ -341,7 +344,8 @@ router.post("/:id/generate-itinerary", async (req, res) => {
     return res.json(tripSchema.parse(toTripDTO(trip)));
   } catch (err) {
     const message = err instanceof Error ? err.message : "Generation failed";
-    return res.status(500).json({ error: message });
+    const status = message.includes("not implemented") || message.includes("Unknown LLM provider") ? 400 : 500;
+    return res.status(status).json({ error: message });
   }
 });
 

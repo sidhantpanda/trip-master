@@ -15,7 +15,11 @@ interface GenerateOptions {
 }
 
 export async function generateItineraryWithValidation(options: GenerateOptions, maxRetries = 2): Promise<TripDay[]> {
-  const provider = getLLMProvider(options.provider);
+  if (options.provider !== "mock" && !options.apiKey) {
+    throw new Error(`API key required for provider ${options.provider}`);
+  }
+
+  const provider = getLLMProvider(options.provider, options.apiKey);
   let lastError: string | undefined;
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
