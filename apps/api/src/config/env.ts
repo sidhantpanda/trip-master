@@ -16,7 +16,8 @@ export const env = {
   jwtAccessSecret: required("JWT_ACCESS_SECRET"),
   jwtRefreshSecret: required("JWT_REFRESH_SECRET"),
   cookieSecure: process.env.COOKIE_SECURE === "true",
-  appBaseUrl: process.env.APP_BASE_URL || "http://localhost:5173"
+  appBaseUrl: process.env.APP_BASE_URL || "http://localhost:5173",
+  encryptionKey: Buffer.from(required("ENCRYPTION_KEY_BASE64"), "base64")
 };
 
 export const accessTokenTtl = "15m";

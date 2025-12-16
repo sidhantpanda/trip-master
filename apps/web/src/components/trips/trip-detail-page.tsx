@@ -7,7 +7,8 @@ import {
   deleteTrip,
   fetchTrip,
   removeCollaborator,
-  updateTrip
+  updateTrip,
+  generateItinerary
 } from "../../api";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
@@ -19,6 +20,7 @@ import { FullPageState } from "../full-page-state";
 import { sortAndReindex } from "../../lib/trip-utils";
 import { DatePickerField } from "../date-picker-field";
 import { format } from "date-fns";
+import { useNavigate as useNavLink } from "react-router-dom";
 
 export function TripDetailPage({
   userId,
@@ -44,6 +46,7 @@ export function TripDetailPage({
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<"editor" | "viewer">("viewer");
+  const [generatePrompt, setGeneratePrompt] = useState("");
 
   const tripQuery = useQuery({
     queryKey: ["trip", id],
@@ -84,6 +87,15 @@ export function TripDetailPage({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["trips"] });
       navigate("/");
+    }
+  });
+
+  const generateMutation = useMutation({
+    mutationFn: (payload: any) => generateItinerary(id || "", payload),
+    onSuccess: (updated) => {
+      queryClient.setQueryData(["trip", id], updated);
+      queryClient.invalidateQueries({ queryKey: ["trips"] });
+      setGeneratePrompt("");
     }
   });
 
@@ -196,6 +208,9 @@ export function TripDetailPage({
         <div className="flex items-center gap-2">
           <Button variant="ghost" onClick={() => navigate("/")}>
             ← Trips
+          </Button>
+          <Button variant="ghost" onClick={() => navigate("/settings")}>
+            Settings
           </Button>
           <Button variant="ghost" onClick={onLogout} disabled={loggingOut}>
             {loggingOut ? "Signing out..." : "Sign out"}
@@ -380,6 +395,44 @@ export function TripDetailPage({
           </CardContent>
         </Card>
       </div>
+
+      {canEdit && (
+        <Card>
+          <CardHeader>
+            <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">LLM</p>
+            <CardTitle>Generate itinerary</CardTitle>
+            <CardDescription>
+              Provide a prompt and we will build a structured plan. Current implementation uses a mock generator locally.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="generate-prompt">Prompt</Label>
+              <Textarea
+                id="generate-prompt"
+                value={generatePrompt}
+                onChange={(e) => setGeneratePrompt(e.target.value)}
+                placeholder="3-day Barcelona food and culture trip"
+              />
+            </div>
+            {generateMutation.error && (
+              <p className="text-sm text-destructive">
+                {generateMutation.error instanceof Error ? generateMutation.error.message : "Generation failed"}
+              </p>
+            )}
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                onClick={() => generateMutation.mutate({ prompt: generatePrompt })}
+                disabled={!generatePrompt || generateMutation.isPending}
+              >
+                {generateMutation.isPending ? "Generating..." : "Generate"}
+              </Button>
+              {generateMutation.isSuccess && <p className="text-sm text-muted-foreground">Itinerary updated.</p>}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>

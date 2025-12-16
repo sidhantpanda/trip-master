@@ -19,7 +19,7 @@ docker compose -f infra/docker-compose.dev.yml up --build
 ```
 
 ## Environment
-- API (`apps/api`): set `PORT`, `MONGODB_URI`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `COOKIE_SECURE=false` (true when served over HTTPS), `APP_BASE_URL=http://localhost:5173`.
+- API (`apps/api`): set `PORT`, `MONGODB_URI`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `COOKIE_SECURE=false` (true when served over HTTPS), `APP_BASE_URL=http://localhost:5173`, `ENCRYPTION_KEY_BASE64` (32-byte key, base64).
 - Web (`apps/web`): set `VITE_API_BASE_URL=http://localhost:4000`.
 - Dev compose already wires example values for the secrets above.
 
@@ -42,6 +42,15 @@ Trip CRUD and collaboration:
 Web client additions:
 - Trips list and create form.
 - Trip detail page with overview editing, collaborator invites/removal, and manual itinerary item additions.
+
+## LLM Generation (Phase 4)
+Settings + generation scaffold:
+- `GET/PUT /settings` — set provider/model/API key (keys stored encrypted with AES-GCM using `ENCRYPTION_KEY_BASE64`).
+- `POST /trips/:id/generate-itinerary` — generate + persist an itinerary (mock provider fallback is used by default; swap to real provider by changing settings and supplying a key).
+
+Web client additions:
+- Settings page to pick provider/model and save encrypted API key.
+- Generate-itinerary form on the trip detail page to update the trip days.
 
 ## Production-ish compose
 Builds production images for the API and web client along with MongoDB:

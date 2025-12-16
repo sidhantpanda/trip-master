@@ -8,6 +8,7 @@ import { env } from "./config/env";
 import authRouter from "./routes/auth";
 import tripsRouter from "./routes/trips";
 import { requireAuth } from "./middleware/requireAuth";
+import settingsRouter from "./routes/settings";
 
 
 const app = express();
@@ -28,6 +29,7 @@ app.get("/health", (_req, res) => {
 
 app.use("/auth", authRouter);
 app.use("/trips", requireAuth, tripsRouter);
+app.use("/settings", requireAuth, settingsRouter);
 
 async function start() {
   try {

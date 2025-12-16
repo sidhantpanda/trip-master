@@ -20,6 +20,7 @@ services:
       - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET:-prod-refresh-secret}
       - COOKIE_SECURE=${COOKIE_SECURE:-false}
       - APP_BASE_URL=${APP_BASE_URL:-http://localhost:5173}
+      - ENCRYPTION_KEY_BASE64=${ENCRYPTION_KEY_BASE64:-ZGVmYXVsdC1lbmNyeXB0aW9uLWtleS0zMmJ5dGVz}
     depends_on:
       - mongodb
     ports:

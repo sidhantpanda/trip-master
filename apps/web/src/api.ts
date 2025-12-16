@@ -10,7 +10,11 @@ import {
   AddCollaboratorInput,
   UpdateCollaboratorInput,
   tripListSchema,
-  tripSchema
+  tripSchema,
+  SettingsResponse,
+  settingsResponseSchema,
+  UpdateSettingsInput,
+  GenerateItineraryInput
 } from "@trip-master/shared";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
@@ -108,6 +112,11 @@ async function parseTripList(response: Response): Promise<TripListResponse> {
   return tripListSchema.parse(data);
 }
 
+async function parseSettings(response: Response): Promise<SettingsResponse> {
+  const data = await response.json();
+  return settingsResponseSchema.parse(data);
+}
+
 export async function fetchTrips(): Promise<TripListResponse> {
   const res = await fetch(`${API_BASE_URL}/trips`, {
     credentials: "include"
@@ -202,4 +211,40 @@ export async function removeCollaborator(tripId: string, userId: string): Promis
   if (!res.ok && res.status !== 204) {
     throw new Error(await readError(res));
   }
+}
+
+export async function fetchSettings(): Promise<SettingsResponse> {
+  const res = await fetch(`${API_BASE_URL}/settings`, {
+    credentials: "include"
+  });
+  if (!res.ok) {
+    throw new Error(await readError(res));
+  }
+  return parseSettings(res);
+}
+
+export async function updateSettings(input: UpdateSettingsInput): Promise<SettingsResponse> {
+  const res = await fetch(`${API_BASE_URL}/settings`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify(input)
+  });
+  if (!res.ok) {
+    throw new Error(await readError(res));
+  }
+  return parseSettings(res);
+}
+
+export async function generateItinerary(tripId: string, input: GenerateItineraryInput): Promise<Trip> {
+  const res = await fetch(`${API_BASE_URL}/trips/${tripId}/generate-itinerary`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify(input)
+  });
+  if (!res.ok) {
+    throw new Error(await readError(res));
+  }
+  return parseTrip(res);
 }

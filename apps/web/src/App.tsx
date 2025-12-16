@@ -7,6 +7,7 @@ import { AuthPage } from "./components/auth/auth-page";
 import { TripsPage } from "./components/trips/trips-page";
 import { TripDetailPage } from "./components/trips/trip-detail-page";
 import { FullPageState } from "./components/full-page-state";
+import { SettingsPage } from "./components/settings/settings-page";
 
 function App() {
   const queryClient = useQueryClient();
@@ -65,6 +66,14 @@ function App() {
               loggingOut={logoutMutation.isPending}
               onLogout={() => logoutMutation.mutate()}
             />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <RequireAuth session={sessionQuery.data} loading={sessionQuery.isLoading}>
+            <SettingsPage onLogout={() => logoutMutation.mutate()} loggingOut={logoutMutation.isPending} />
           </RequireAuth>
         }
       />

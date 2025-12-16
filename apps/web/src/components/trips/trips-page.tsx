@@ -51,6 +51,9 @@ export function TripsPage({
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button variant="ghost" onClick={() => navigate("/settings")}>
+            Settings
+          </Button>
           <Button variant="ghost" onClick={onLogout} disabled={loggingOut}>
             {loggingOut ? "Signing out..." : "Sign out"}
           </Button>

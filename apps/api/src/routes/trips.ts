@@ -3,6 +3,7 @@ import mongoose, { Types } from "mongoose";
 import {
   addCollaboratorSchema,
   createTripSchema,
+  generateItinerarySchema,
   tripListSchema,
   tripSchema,
   updateCollaboratorSchema,
@@ -10,6 +11,8 @@ import {
 } from "@trip-master/shared";
 import { TripModel, toTripDTO, TripDocument } from "../models/Trip";
 import { UserModel } from "../models/User";
+import { generateItineraryWithValidation } from "../services/itineraryGenerator";
+import { decryptSecret } from "../utils/encryption";
 
 const router = Router();
 
@@ -272,6 +275,74 @@ router.delete("/:id/collaborators/:userId", async (req, res) => {
 
   await trip.save();
   return res.status(204).end();
+});
+
+router.post("/:id/generate-itinerary", async (req, res) => {
+  const requesterId = parseObjectId(req.user?.userId || "");
+  const tripId = parseObjectId(req.params.id);
+  if (!requesterId) return res.status(401).json({ error: "Unauthorized" });
+  if (!tripId) return res.status(400).json({ error: "Invalid trip id" });
+
+  const parsed = generateItinerarySchema.safeParse(req.body);
+  if (!parsed.success) {
+    const firstError = parsed.error.errors.at(0)?.message ?? "Invalid payload";
+    return res.status(400).json({ error: firstError });
+  }
+
+  const trip = await TripModel.findById(tripId);
+  if (!trip) return res.status(404).json({ error: "Trip not found" });
+
+  const role = getUserRole(trip, requesterId);
+  if (role !== "owner" && role !== "editor") return res.status(403).json({ error: "Forbidden" });
+
+  const user = await UserModel.findById(requesterId);
+  const settings = user?.settings ?? { llmProvider: "mock" };
+  const provider = settings.llmProvider || "mock";
+  const model = settings.llmModel;
+  let apiKey: string | undefined;
+  const encryptedKey = (settings.encryptedApiKeys as Record<string, string | undefined> | undefined)?.[provider];
+  if (encryptedKey) {
+    try {
+      apiKey = decryptSecret(encryptedKey);
+    } catch {
+      console.warn("Failed to decrypt API key for provider", provider);
+    }
+  }
+
+  const startDateIso = trip.startDate?.toISOString();
+  const dayCount =
+    trip.startDate && trip.endDate
+      ? Math.max(1, Math.ceil((trip.endDate.getTime() - trip.startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1)
+      : Math.max(trip.days.length, 3);
+
+  try {
+    const generatedDays = await generateItineraryWithValidation(
+      {
+        provider,
+        model,
+        prompt: parsed.data.prompt,
+        dayCount,
+        startDate: startDateIso,
+        destination: trip.destination,
+        apiKey
+      },
+      1
+    );
+
+    trip.days = normalizeDays(
+      generatedDays.map((day, idx) => ({
+        ...day,
+        dayIndex: day.dayIndex ?? idx,
+        date: day.date
+      }))
+    ) as any;
+
+    await trip.save();
+    return res.json(tripSchema.parse(toTripDTO(trip)));
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Generation failed";
+    return res.status(500).json({ error: message });
+  }
 });
 
 export default router;

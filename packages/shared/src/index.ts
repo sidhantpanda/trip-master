@@ -4,6 +4,34 @@ export const healthSchema = z.object({
   ok: z.literal(true)
 });
 
+export const llmProviderSchema = z.enum(["openai", "anthropic", "gemini", "mock"]);
+
+export const userSettingsSchema = z.object({
+  llmProvider: llmProviderSchema,
+  llmModel: z.string().optional(),
+  encryptedApiKeys: z
+    .object({
+      openai: z.string().optional(),
+      anthropic: z.string().optional(),
+      gemini: z.string().optional(),
+      mock: z.string().optional()
+    })
+    .optional()
+});
+
+export const updateSettingsSchema = userSettingsSchema.partial().extend({
+  apiKey: z.string().optional()
+});
+
+export const settingsResponseSchema = z.object({
+  settings: userSettingsSchema
+});
+
+export const generateItinerarySchema = z.object({
+  prompt: z.string().min(1, "Prompt is required"),
+  regenerateDays: z.array(z.number().min(0)).optional()
+});
+
 export const tripLinkSchema = z.object({
   label: z.string(),
   url: z.string().url()
@@ -123,6 +151,11 @@ export type UserDTO = z.infer<typeof userSchema>;
 export type AuthRegisterInput = z.infer<typeof authRegisterSchema>;
 export type AuthLoginInput = z.infer<typeof authLoginSchema>;
 export type AuthResponse = z.infer<typeof authResponseSchema>;
+export type LLMProvider = z.infer<typeof llmProviderSchema>;
+export type UserSettings = z.infer<typeof userSettingsSchema>;
+export type UpdateSettingsInput = z.infer<typeof updateSettingsSchema>;
+export type SettingsResponse = z.infer<typeof settingsResponseSchema>;
+export type GenerateItineraryInput = z.infer<typeof generateItinerarySchema>;
 export type TripLink = z.infer<typeof tripLinkSchema>;
 export type TripLocation = z.infer<typeof tripLocationSchema>;
 export type TripItem = z.infer<typeof tripItemSchema>;

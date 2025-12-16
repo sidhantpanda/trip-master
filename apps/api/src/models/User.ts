@@ -5,6 +5,16 @@ export interface UserDocument extends mongoose.Document {
   email: string;
   name: string;
   passwordHash: string;
+  settings: {
+    llmProvider: string;
+    llmModel?: string;
+    encryptedApiKeys?: {
+      openai?: string;
+      anthropic?: string;
+      gemini?: string;
+      mock?: string;
+    };
+  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -13,7 +23,17 @@ const userSchema = new Schema<UserDocument>(
   {
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     name: { type: String, required: true, trim: true },
-    passwordHash: { type: String, required: true }
+    passwordHash: { type: String, required: true },
+    settings: {
+      llmProvider: { type: String, default: "mock" },
+      llmModel: { type: String },
+      encryptedApiKeys: {
+        openai: String,
+        anthropic: String,
+        gemini: String,
+        mock: String
+      }
+    }
   },
   { timestamps: true }
 );
