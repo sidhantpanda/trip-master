@@ -25,14 +25,20 @@ const userSchema = new Schema<UserDocument>(
     name: { type: String, required: true, trim: true },
     passwordHash: { type: String, required: true },
     settings: {
-      llmProvider: { type: String, default: "mock" },
-      llmModel: { type: String },
-      encryptedApiKeys: {
-        openai: String,
-        anthropic: String,
-        gemini: String,
-        mock: String
-      }
+      type: {
+        llmProvider: { type: String, default: "mock" },
+        llmModel: { type: String },
+        encryptedApiKeys: {
+          type: {
+            openai: String,
+            anthropic: String,
+            gemini: String,
+            mock: String
+          },
+          default: {}
+        }
+      },
+      default: {}
     }
   },
   { timestamps: true }
