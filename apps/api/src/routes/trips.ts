@@ -3,7 +3,9 @@ import mongoose, { Types } from "mongoose";
 import {
   addCollaboratorSchema,
   createTripSchema,
+  enrichTripSchema,
   generateItinerarySchema,
+  routeTripSchema,
   tripListSchema,
   tripSchema,
   updateCollaboratorSchema,
@@ -12,7 +14,9 @@ import {
 import { TripModel, toTripDTO, TripDocument } from "../models/Trip";
 import { UserModel } from "../models/User";
 import { generateItineraryWithValidation } from "../services/itineraryGenerator";
+import { computeTripRoutes, enrichTripPlaces } from "../services/tripMaps";
 import { decryptSecret } from "../utils/encryption";
+import { env } from "../config/env";
 
 const router = Router();
 
@@ -346,6 +350,72 @@ router.post("/:id/generate-itinerary", async (req, res) => {
     const message = err instanceof Error ? err.message : "Generation failed";
     const status = message.includes("not implemented") || message.includes("Unknown LLM provider") ? 400 : 500;
     return res.status(status).json({ error: message });
+  }
+});
+
+router.post("/:id/enrich", async (req, res) => {
+  const requesterId = parseObjectId(req.user?.userId || "");
+  const tripId = parseObjectId(req.params.id);
+  if (!requesterId) return res.status(401).json({ error: "Unauthorized" });
+  if (!tripId) return res.status(400).json({ error: "Invalid trip id" });
+
+  const parsed = enrichTripSchema.safeParse(req.body ?? {});
+  if (!parsed.success) {
+    const firstError = parsed.error.errors.at(0)?.message ?? "Invalid payload";
+    return res.status(400).json({ error: firstError });
+  }
+
+  const trip = await TripModel.findById(tripId);
+  if (!trip) return res.status(404).json({ error: "Trip not found" });
+
+  const role = getUserRole(trip, requesterId);
+  if (role !== "owner" && role !== "editor") return res.status(403).json({ error: "Forbidden" });
+
+  try {
+    const result = await enrichTripPlaces(trip, env.googleMapsApiKey, parsed.data.dayIndex);
+    if (result.updated) {
+      trip.markModified("days");
+      await trip.save();
+    }
+    return res.json(tripSchema.parse(toTripDTO(trip)));
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Enrichment failed";
+    return res.status(500).json({ error: message });
+  }
+});
+
+router.post("/:id/route", async (req, res) => {
+  const requesterId = parseObjectId(req.user?.userId || "");
+  const tripId = parseObjectId(req.params.id);
+  if (!requesterId) return res.status(401).json({ error: "Unauthorized" });
+  if (!tripId) return res.status(400).json({ error: "Invalid trip id" });
+
+  const parsed = routeTripSchema.safeParse(req.body ?? {});
+  if (!parsed.success) {
+    const firstError = parsed.error.errors.at(0)?.message ?? "Invalid payload";
+    return res.status(400).json({ error: firstError });
+  }
+
+  const trip = await TripModel.findById(tripId);
+  if (!trip) return res.status(404).json({ error: "Trip not found" });
+
+  const role = getUserRole(trip, requesterId);
+  if (role !== "owner" && role !== "editor") return res.status(403).json({ error: "Forbidden" });
+
+  const mode = parsed.data.mode ?? "driving";
+  try {
+    const result = await computeTripRoutes(trip, env.googleMapsApiKey, {
+      dayIndex: parsed.data.dayIndex,
+      mode
+    });
+    if (result.updated) {
+      trip.markModified("days");
+      await trip.save();
+    }
+    return res.json(tripSchema.parse(toTripDTO(trip)));
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Route computation failed";
+    return res.status(500).json({ error: message });
   }
 });
 

@@ -64,6 +64,15 @@ export const tripRouteSchema = z.object({
   durationSeconds: z.number().optional()
 });
 
+export const enrichTripSchema = z.object({
+  dayIndex: z.number().min(0).optional()
+});
+
+export const routeTripSchema = z.object({
+  dayIndex: z.number().min(0).optional(),
+  mode: z.enum(["driving", "transit", "walking"]).optional()
+});
+
 export const tripDaySchema = z.object({
   id: z.string().optional(),
   dayIndex: z.number(),
@@ -168,3 +177,5 @@ export type UpdateTripInput = z.infer<typeof updateTripSchema>;
 export type Collaborator = z.infer<typeof collaboratorSchema>;
 export type AddCollaboratorInput = z.infer<typeof addCollaboratorSchema>;
 export type UpdateCollaboratorInput = z.infer<typeof updateCollaboratorSchema>;
+export type EnrichTripInput = z.infer<typeof enrichTripSchema>;
+export type RouteTripInput = z.infer<typeof routeTripSchema>;

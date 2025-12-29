@@ -17,7 +17,8 @@ export const env = {
   jwtRefreshSecret: required("JWT_REFRESH_SECRET"),
   cookieSecure: process.env.COOKIE_SECURE === "true",
   appBaseUrl: process.env.APP_BASE_URL || "http://localhost:5173",
-  encryptionKey: Buffer.from(required("ENCRYPTION_KEY_BASE64"), "base64")
+  encryptionKey: Buffer.from(required("ENCRYPTION_KEY_BASE64"), "base64"),
+  googleMapsApiKey: required("GOOGLE_MAPS_API_KEY")
 };
 
 export const accessTokenTtl = "15m";

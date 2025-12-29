@@ -8,7 +8,9 @@ import {
   fetchTrip,
   removeCollaborator,
   updateTrip,
-  generateItinerary
+  generateItinerary,
+  enrichTrip,
+  computeTripRoutes
 } from "../../api";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
@@ -20,7 +22,7 @@ import { FullPageState } from "../full-page-state";
 import { sortAndReindex } from "../../lib/trip-utils";
 import { DatePickerField } from "../date-picker-field";
 import { format } from "date-fns";
-import { useNavigate as useNavLink } from "react-router-dom";
+import { TripMapPanel } from "./trip-map-panel";
 
 export function TripDetailPage({
   userId,
@@ -96,6 +98,23 @@ export function TripDetailPage({
       queryClient.setQueryData(["trip", id], updated);
       queryClient.invalidateQueries({ queryKey: ["trips"] });
       setGeneratePrompt("");
+    }
+  });
+
+  const enrichMutation = useMutation({
+    mutationFn: (payload: { dayIndex: number }) => enrichTrip(id || "", payload),
+    onSuccess: (updated) => {
+      queryClient.setQueryData(["trip", id], updated);
+      queryClient.invalidateQueries({ queryKey: ["trips"] });
+    }
+  });
+
+  const routeMutation = useMutation({
+    mutationFn: (payload: { dayIndex: number; mode: "driving" | "transit" | "walking" }) =>
+      computeTripRoutes(id || "", payload),
+    onSuccess: (updated) => {
+      queryClient.setQueryData(["trip", id], updated);
+      queryClient.invalidateQueries({ queryKey: ["trips"] });
     }
   });
 
@@ -433,6 +452,22 @@ export function TripDetailPage({
           </CardContent>
         </Card>
       )}
+
+      <TripMapPanel
+        trip={trip}
+        canEdit={canEdit}
+        onEnrichDay={(dayIndex) => enrichMutation.mutate({ dayIndex })}
+        onComputeRoutes={(dayIndex, mode) => routeMutation.mutate({ dayIndex, mode })}
+        enriching={enrichMutation.isPending}
+        routing={routeMutation.isPending}
+        error={
+          enrichMutation.error instanceof Error
+            ? enrichMutation.error.message
+            : routeMutation.error instanceof Error
+              ? routeMutation.error.message
+              : undefined
+        }
+      />
 
       <Card>
         <CardHeader>

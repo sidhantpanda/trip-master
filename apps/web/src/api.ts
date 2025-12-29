@@ -14,7 +14,9 @@ import {
   SettingsResponse,
   settingsResponseSchema,
   UpdateSettingsInput,
-  GenerateItineraryInput
+  GenerateItineraryInput,
+  EnrichTripInput,
+  RouteTripInput
 } from "@trip-master/shared";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
@@ -238,6 +240,32 @@ export async function updateSettings(input: UpdateSettingsInput): Promise<Settin
 
 export async function generateItinerary(tripId: string, input: GenerateItineraryInput): Promise<Trip> {
   const res = await fetch(`${API_BASE_URL}/trips/${tripId}/generate-itinerary`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify(input)
+  });
+  if (!res.ok) {
+    throw new Error(await readError(res));
+  }
+  return parseTrip(res);
+}
+
+export async function enrichTrip(tripId: string, input: EnrichTripInput = {}): Promise<Trip> {
+  const res = await fetch(`${API_BASE_URL}/trips/${tripId}/enrich`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify(input)
+  });
+  if (!res.ok) {
+    throw new Error(await readError(res));
+  }
+  return parseTrip(res);
+}
+
+export async function computeTripRoutes(tripId: string, input: RouteTripInput = {}): Promise<Trip> {
+  const res = await fetch(`${API_BASE_URL}/trips/${tripId}/route`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
